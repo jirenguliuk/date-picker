@@ -2,11 +2,12 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>JS Bin</title>
+  <title>datepicker</title>
   <link rel="stylesheet" href="./index.css">
 </head>
 <body>
 <input id="date-start" type="text" placeholder="起始日期">
+<!--
 <div class="ui-date-picker">
   <div class="header">
       <span class="pre caret-left"></span>
@@ -78,5 +79,176 @@
 
   </table>
 </div>
+-->
+<script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+<script>
+function DatePick($target){
+  this.init($target);
+  this.render();
+  this.setDate();
+  this.bind();
+}
+
+DatePick.prototype = {
+
+  init: function($target){
+    this.date = new date();
+    this.taget = $target;
+  },
+
+  render: function(){
+    var tpl = '<div class="ui-date-picker" style="display:none">'
+    + '<div class="header"><span class="pre caret-left"></span><span class="cur"></span><span class="next caret-right "></span> '
+    +   '<table class="panel">'
+    +     '<thead><tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr></thead>'
+    +   '<tbody></tbody>'
+    + '</div>';
+    this.$datepicker = $(tpl);
+    $('body').append(this.$datepicker);
+  },
+
+  setDate: function(){
+    this.$datepicker.find('tbody').html(''); 
+
+    var firstDay = this.getFirstDay(this.date),
+        lastDay = this.getLastDay(this.date);
+
+    var dateArr = [];
+
+
+    for(var i = firstDay.getDay(); i>0; i--){
+      var d = new Date( firstDay.getTime() - i*24*60*60*1000)
+      dateArr.push({type:'pre', date:d });
+    }
+    
+    for(var j = 0;j< lastDay.getDate(); j++ ){
+      var d = new Date(firstDay.getTime() + j*24*60*60*1000)
+      dateArr.push({type:'cur', date:d });
+    }
+
+    for(var k = 1; k< 7 - lastDay.getDay();k++){
+      var d = new Date(lastDay.getTime() + k*24*60*60*1000)
+      dateArr.push({type:'next', date:d });
+    }
+
+    this.$datepicker.find(".cur").text(this.date.getFullYear()+'年'+(this.date.getMonth())+'月')
+   
+    var tpl = '';
+    for (var i=0;i<dateArr.length;i++){
+      if (i%7 === 0){
+        tpl = "<tr>" + tpl;
+      }
+
+      tpl += "<td clsaa=''";
+
+      if(dateArr[i].type === 'pre'){
+        tpl +='pre-month';
+      }else if(dateArr[i].type === 'cur'){
+        tpl +='cur-month';
+      }else{
+        tpl +='next-month'
+      }
+
+      if(this.getYYMMDD(this.date) === this.getYYMMDD(dateArr[i].date)){
+        tpl += 'cur-date';
+      }
+      tpl +='"';
+
+
+      tpl += 'data-date="' + this.getYYMMDD(dateArr[i].date)+'">';
+      var date = dateArr[i].date.getDate()+ '';
+      date = date .length ===2 ? date :'0' + date; //01 02 03 ...
+      tpl += date + '</td>';
+
+      if(i%7 === 6){
+        tpl = tpl + '</tr>'
+      }
+    }
+
+     this.$datepicker.find('tbody').html(tpl);
+     this.$datepicker.show();
+
+  },
+
+  bind: function(){
+    var self = this;
+    this.$datepicker.find('.pre').on('click',function(){
+      var year = self.date.getFullYear(),
+          month = self.date.getMonth(),
+          newMonth = month;
+          newYear = year;
+
+          newMonth--;
+          if (newMonth < 0){
+            newMonth = 11;
+            newYear--;
+          }
+          console.log(newMonth,newYear);
+          self.date.setMonth(newMonth);
+          self.date.setYear(newYear);
+          console.log(self.date);
+          self.setDate();
+    });
+
+    this.$datepicker.find('.next').on('click',function(){
+      var year = self.date.getFullYear(),
+          month = self.date.getMonth(),
+          newMonth = month;
+          newYear = year; 
+
+          newMonth++;   
+          
+          if (newMonth > 11){
+            newMonth = 0;
+            newYear++;
+          } 
+          console.log(newMonth,newYear);
+          self.date.setMonth(newMonth);
+          self.date.setYear(newYear);
+          console.log(self.date);
+          self.setDate();                    
+    });
+    this.$datepicker.on('click','.cur-month',function(){
+      self.$target.val($(this).attr('data-date'))
+      self.$datepicker.hide();
+    });
+    this.$target.on('focus',function(){
+      self.$datepicker.show();
+    })
+  },
+
+  isValidDate: function(dateStr){
+    return new Date (dateStr).tostring() !== 'Invalid Date';
+  },
+
+  getFirstDay: function(date){
+      date.setDate(1);
+      return date;
+
+    }, 
+  
+  getLastDay: function(){
+    var year = date.getFullYear(),
+        month = date.getMonth() + 1,
+        newMonth = month++;
+        newYear = year;
+
+    if (month > 12){
+      newMonth -= 12;
+      newYear++;
+    }
+    var newDate = new Date (newYear,newMonth,1)
+    return new Date (newDate.getTime()-1000*24*60*60)
+  },
+
+  getYYMMDD: function(){
+    return date.getFullYear()+ '/'+(date.getMonth()+1)+'/'+date.getDate();
+  }
+
+}
+
+new DatePick($('#date-start'));
+
+</script>
 </body>
 </html>
