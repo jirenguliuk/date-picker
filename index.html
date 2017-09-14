@@ -6,7 +6,8 @@
   <link rel="stylesheet" href="./index.css">
 </head>
 <body>
-<input id="date-start" type="text" placeholder="起始日期">
+<input class="date-start" type="text" placeholder="起始日期-有初始值" date-init="2016/05/31">
+<input class="date-start" type="text" placeholder="无初始值"  />
 <!--
 <div class="ui-date-picker">
   <div class="header">
@@ -92,13 +93,16 @@ function DatePick($target){
 DatePick.prototype = {
 
   init: function($target){
-    this.date = new date();
-    this.taget = $target;
+    this.date = new Date();
+    this.$target = $target;
+    if (this.isValidDate($target.attr('date-init'))) {
+          this.date = new Date($target.attr('date-init'));   //当前日期或者指定的要展示的日期
+    }
   },
 
   render: function(){
     var tpl = '<div class="ui-date-picker" style="display:none">'
-    + '<div class="header"><span class="pre caret-left"></span><span class="cur"></span><span class="next caret-right "></span> '
+    + '<div class="header"><span class="pre caret-left"></span><span class="cur"></span><span class="next caret-right "></span> </div>'
     +   '<table class="panel">'
     +     '<thead><tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr></thead>'
     +   '<tbody></tbody>'
@@ -131,7 +135,7 @@ DatePick.prototype = {
       dateArr.push({type:'next', date:d });
     }
 
-    this.$datepicker.find(".cur").text(this.date.getFullYear()+'年'+(this.date.getMonth())+'月')
+    this.$datepicker.find(".header-date").text(this.date.getFullYear()+'年'+(this.date.getMonth()+1)+'月')
    
     var tpl = '';
     for (var i=0;i<dateArr.length;i++){
@@ -139,7 +143,7 @@ DatePick.prototype = {
         tpl = "<tr>" + tpl;
       }
 
-      tpl += "<td clsaa=''";
+      tpl += '<td class="';
 
       if(dateArr[i].type === 'pre'){
         tpl +='pre-month';
@@ -149,13 +153,13 @@ DatePick.prototype = {
         tpl +='next-month'
       }
 
-      if(this.getYYMMDD(this.date) === this.getYYMMDD(dateArr[i].date)){
-        tpl += 'cur-date';
+      if(this.getYYMMDD(new Date()) === this.getYYMMDD(dateArr[i].date)){
+        tpl += ' cur-date';
       }
       tpl +='"';
 
 
-      tpl += 'data-date="' + this.getYYMMDD(dateArr[i].date)+'">';
+      tpl += ' data-date="' + this.getYYMMDD(dateArr[i].date)+'">';
       var date = dateArr[i].date.getDate()+ '';
       date = date .length ===2 ? date :'0' + date; //01 02 03 ...
       tpl += date + '</td>';
@@ -166,7 +170,7 @@ DatePick.prototype = {
     }
 
      this.$datepicker.find('tbody').html(tpl);
-     this.$datepicker.show();
+     
 
   },
 
@@ -212,13 +216,14 @@ DatePick.prototype = {
       self.$target.val($(this).attr('data-date'))
       self.$datepicker.hide();
     });
-    this.$target.on('focus',function(){
+    this.$target.on('click',function(e){
+      e.stopPropagation();
       self.$datepicker.show();
-    })
+    });
   },
 
   isValidDate: function(dateStr){
-    return new Date (dateStr).tostring() !== 'Invalid Date';
+    return new Date (dateStr).toString() !== 'Invalid Date';
   },
 
   getFirstDay: function(date){
@@ -227,7 +232,7 @@ DatePick.prototype = {
 
     }, 
   
-  getLastDay: function(){
+  getLastDay: function(date){
     var year = date.getFullYear(),
         month = date.getMonth() + 1,
         newMonth = month++;
@@ -238,16 +243,29 @@ DatePick.prototype = {
       newYear++;
     }
     var newDate = new Date (newYear,newMonth,1)
-    return new Date (newDate.getTime()-1000*24*60*60)
+    return new Date (newDate.getTime()-1000*24*60*60);
   },
 
-  getYYMMDD: function(){
+  getYYMMDD: function(date){
     return date.getFullYear()+ '/'+(date.getMonth()+1)+'/'+date.getDate();
   }
 
 }
 
-new DatePick($('#date-start'));
+    //new DatePick($('#date-start')); 直接调用
+
+    // 创建对象的方式
+    // $('.date-ipt').each(function(){
+    //   new DatePick($(this));
+    // })
+
+    //变成 jquery 插件
+    $.fn.datePicker = function() {
+        this.each(function(){
+          new DatePick($(this));
+        });
+    };
+    $('.date-ipt').datePicker();
 
 </script>
 </body>
