@@ -135,7 +135,7 @@ DatePick.prototype = {
       dateArr.push({type:'next', date:d });
     }
 
-    this.$datepicker.find(".header-date").text(this.date.getFullYear()+'年'+(this.date.getMonth()+1)+'月')
+    this.$datepicker.find(".header").text(this.date.getFullYear()+'年'+(this.date.getMonth()+1)+'月')
    
     var tpl = '';
     for (var i=0;i<dateArr.length;i++){
@@ -220,6 +220,13 @@ DatePick.prototype = {
       e.stopPropagation();
       self.$datepicker.show();
     });
+    //下面设置点击页面其他部分隐藏 datepicker
+    this.$datepicker.on('click', function(e){
+      e.stopPropagation();
+    });
+    $(window).on('click', function(e){
+      self.$datepicker.hide();
+    });
   },
 
   isValidDate: function(dateStr){
@@ -265,7 +272,7 @@ DatePick.prototype = {
           new DatePick($(this));
         });
     };
-    $('.date-ipt').datePicker();
+    $('.date-start').datePicker();
 
 </script>
 </body>
